@@ -1,0 +1,126 @@
+@startuml
+!theme spacelab
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+title Diagrama de Classes - Projeto Pizzaria
+
+'---------------------------
+'           MODEL
+'---------------------------
+
+abstract class Pizza {
+  - nome: String
+  - preco: double
+  - ingredientes: String
+  + Pizza(nome, preco, ingredientes)
+  + getNome(): String
+  + getPreco(): double
+  + setPreco(preco: double): void
+  + getIngredientes(): String
+  + {abstract} calcularPreco(): void
+  + {abstract} getTipo(): String
+}
+
+class PizzaTradicional extends Pizza {
+  + PizzaTradicional(nome, preco, ingredientes)
+  + calcularPreco(): void
+  + desconto(percentual: int): void
+  + getTipo(): String
+}
+
+class PizzaEspecial extends Pizza {
+  + PizzaEspecial(nome, preco, ingredientes)
+  + calcularPreco(): void
+  + getTipo(): String
+}
+
+class Cliente {
+  - nome: String
+  - cpf: String
+  - endereco: String
+  + Cliente(nome, cpf, endereco)
+  + getNome(): String
+  + getCpf(): String
+  + getEndereco(): String
+}
+
+class Pedido {
+  - numero: int
+  - data: LocalDate
+  - ValorTotalPedido: double
+  - cliente: Cliente
+  - pizzas: ArrayList<Pizza>
+  - {static} totalPedidos: int
+  - totalVendasDia: double
+  + Pedido(numero, data, cliente)
+  + addPizza(pizza: Pizza): void
+  + addPizza(nomePizza: String): void
+  + aplicaPromocao(): void
+  + calculototal(): double
+  + mostrarDetalhes(): void
+  + finalizar(): void
+  + {static} getTotalPedidos(): int
+  + getCliente(): Cliente
+  + getPizzas(): ArrayList<Pizza>
+}
+
+class Cardapio {
+  + {static} pizzasDisponiveis: ArrayList<Pizza>
+  + {static} buscarPizza(nome: String): Pizza
+}
+
+'---------------------------
+'          INTERFACES
+'---------------------------
+
+interface Promocional {
+  + {abstract} desconto(percentual: int): void
+}
+
+interface Runnable {
+    + {abstract} run(): void
+}
+
+'---------------------------
+'           SERVICE
+'---------------------------
+
+class GerenciadorDeArquivos {
+  - {static} NOME_ARQUIVO: String
+  + salvarPedido(pedido: Pedido): void
+}
+
+class PreparoPedido {
+  - pedido: Pedido
+  + PreparoPedido(pedido: Pedido)
+  + run(): void
+}
+
+'---------------------------
+'          EXCEPTION
+'---------------------------
+exception PedidoVazioException {
+    + PedidoVazioException(message: String)
+}
+
+
+' --- RELACIONAMENTOS ---
+PizzaTradicional .up.|> Promocional
+PizzaTradicional --|> Pizza
+PizzaEspecial --|> Pizza
+PreparoPedido .up.|> Runnable
+
+Pedido "1" *-- "1" Cliente : "feito por"
+Pedido "1" *-- "1..*" Pizza : "contém"
+Cardapio "1" *-- "0..*" Pizza : "possui"
+
+Main ..> Pedido : "cria e processa"
+Main ..> PreparoPedido : "inicia"
+Pedido ..> Cardapio : "usa para buscar"
+GerenciadorDeArquivos ..> Pedido : "salva"
+PreparoPedido ..> Pedido : "prepara"
+Pedido ..> PedidoVazioException : "lança"
+
+note top of Main : "Classe principal que orquestra a aplicação"
+@enduml
